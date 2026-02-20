@@ -1,0 +1,749 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Smart Football Selection Assistant{% endblock %}
+
+{% block content %}
+<style>
+    /* Global Compact Styles for Full Screen experience */
+    :root {
+        --header-height: 80px;
+        /* Approx navbar height */
+    }
+
+    .full-screen-container {
+        height: calc(100vh - var(--header-height) - 40px);
+        /* Subtract navbar + padding */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        /* Center content vertically */
+        overflow-y: auto;
+        /* Allow scroll if content is too tall */
+        padding: 0 20px;
+    }
+
+    /* Dashboard Styles */
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .dashboard-header {
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.6rem;
+        margin-bottom: 0;
+        background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        margin-bottom: 15px;
+        flex-shrink: 0;
+    }
+
+    .kpi-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #4361ee;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .kpi-card:nth-child(2) {
+        border-left-color: #f72585;
+    }
+
+    .kpi-card:nth-child(3) {
+        border-left-color: #4cc9f0;
+    }
+
+    .kpi-card:nth-child(4) {
+        border-left-color: #22c55e;
+    }
+
+    .kpi-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(67, 97, 238, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        color: #4361ee;
+    }
+
+    .kpi-card:nth-child(2) .kpi-icon {
+        background: rgba(247, 37, 133, 0.1);
+        color: #f72585;
+    }
+
+    .kpi-card:nth-child(3) .kpi-icon {
+        background: rgba(76, 201, 240, 0.1);
+        color: #4cc9f0;
+    }
+
+    .kpi-card:nth-child(4) .kpi-icon {
+        background: rgba(34, 197, 94, 0.1);
+        color: #22c55e;
+    }
+
+    .kpi-content h3 {
+        font-size: 1.3rem;
+        margin: 0;
+        font-weight: 800;
+        color: #1e293b;
+    }
+
+    .kpi-content span {
+        font-size: 0.75rem;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 15px;
+        flex-grow: 1;
+        min-height: 0;
+    }
+
+    .chart-panel,
+    .insights-panel {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .chart-container {
+        flex-grow: 1;
+        position: relative;
+        width: 100%;
+    }
+
+    .insight-item {
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        gap: 10px;
+    }
+
+    .insight-item:last-child {
+        margin-bottom: 0;
+        border-bottom: none;
+    }
+
+    .insight-icon {
+        font-size: 1.2rem;
+        margin-top: 2px;
+    }
+
+    .insight-content h4 {
+        margin: 0 0 2px 0;
+        color: #1e293b;
+        font-size: 0.9rem;
+    }
+
+    .insight-content p {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.8rem;
+        line-height: 1.3;
+    }
+
+    .action-panel {
+        margin-top: 15px;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-shrink: 0;
+    }
+
+    /* Compact Form Styles for Single Player */
+    .compact-form-card {
+        background: white;
+        border-radius: 16px;
+        padding: 40px;
+        padding-bottom: 50px;
+        /* Extra space for the back link */
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        max-width: 900px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    .compact-form-header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .compact-form-header h1 {
+        font-size: 1.8rem;
+        margin-bottom: 5px;
+        color: #1e293b;
+    }
+
+    .compact-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .compact-input-group label {
+        font-size: 0.85rem;
+        margin-bottom: 5px;
+        color: #64748b;
+    }
+
+    .compact-input-group input {
+        padding: 10px 15px;
+        font-size: 0.95rem;
+        border-radius: 8px;
+    }
+
+    /* Compact Multiplayer Styles */
+    .compact-upload-container {
+        display: flex;
+        gap: 30px;
+        max-width: 1000px;
+        margin: 0 auto;
+        width: 100%;
+        align-items: stretch;
+        background: white;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    .upload-left {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .upload-right {
+        flex: 1;
+        border-left: 1px solid #e2e8f0;
+        padding-left: 30px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .upload-box {
+        border: 2px dashed #cbd5e1;
+        border-radius: 12px;
+        padding: 40px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: #f8fafc;
+    }
+
+    .upload-box:hover {
+        border-color: #4361ee;
+        background: #eff6ff;
+    }
+
+    .content-section {
+        display: none;
+        animation: fadeIn 0.3s ease-out;
+        height: 100%;
+        /* Important for full height */
+    }
+
+    .content-section.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<!-- ==================== HOME (DASHBOARD) SECTION ==================== -->
+<section id="home-section" class="content-section active">
+    <!-- Inline styles here override class to guarantee fit -->
+    <div class="dashboard-container" style="height: calc(100vh - 90px); padding-bottom: 10px;">
+
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-bullseye"></i></div>
+                <div class="kpi-content">
+                    <h3>{{ metrics.avg_acc }}%</h3>
+                    <span>Avg Accuracy</span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-check-double"></i></div>
+                <div class="kpi-content">
+                    <h3>{{ metrics.avg_precision }}%</h3>
+                    <span>Avg Precision</span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-filter"></i></div>
+                <div class="kpi-content">
+                    <h3>{{ metrics.avg_recall }}%</h3>
+                    <span>Avg Recall</span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-chart-pie"></i></div>
+                <div class="kpi-content">
+                    <h3>{{ metrics.avg_f1 }}%</h3>
+                    <span>Avg F1 Score</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="content-grid">
+            <!-- Chart Section -->
+            <div class="chart-panel">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <h2 style="font-size: 1.1rem; color: #1e293b; margin: 0;">Model Comparison</h2>
+                    <div style="display: flex; gap: 10px;">
+                        <span style="font-size: 0.75rem; color: #64748b; display: flex; align-items: center; gap: 4px;">
+                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #4361ee;"></span> LR
+                        </span>
+                        <span style="font-size: 0.75rem; color: #64748b; display: flex; align-items: center; gap: 4px;">
+                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #f72585;"></span> RF
+                        </span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Insights Section -->
+            <div class="insights-panel">
+                <h2 style="font-size: 1.1rem; color: #1e293b; margin: 0 0 15px 0;"><i class="fas fa-lightbulb"
+                        style="color: #f59e0b;"></i> Insights</h2>
+
+                <div class="insight-item">
+                    <div class="insight-icon" style="color: #4361ee;"><i class="fas fa-crosshairs"></i></div>
+                    <div class="insight-content">
+                        <h4>High Precision Strategy</h4>
+                        <p>Perfect precision (~{{ metrics.lr.Precision }}%) indicates minimal false positives.</p>
+                    </div>
+                </div>
+
+                <div class="insight-item">
+                    <div class="insight-icon" style="color: #f72585;"><i class="fas fa-search-minus"></i></div>
+                    <div class="insight-content">
+                        <h4>Recall Analysis</h4>
+                        <p>Recall of ~{{ metrics.rf.Recall }}% shows a conservative selection approach.</p>
+                    </div>
+                </div>
+
+                <div class="insight-item">
+                    <div class="insight-icon" style="color: #4cc9f0;"><i class="fas fa-project-diagram"></i></div>
+                    <div class="insight-content">
+                        <h4>Ensemble Power</h4>
+                        <p>Combining models provides a robust generalized Probability Score.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Removed -->
+    </div>
+</section>
+
+<!-- ==================== SINGLE PLAYER SECTION ==================== -->
+<section id="single_player-section" class="content-section">
+    <div class="full-screen-container">
+        <div class="compact-form-card">
+            <div class="compact-form-header">
+                <h1><i class="fas fa-user-edit"></i> Single Player Evaluation</h1>
+                <p style="color: #64748b;">Enter player statisitcs to calculate selection probability.</p>
+            </div>
+
+            <form action="{{ url_for('evaluate_single_player') }}" method="POST"
+                onsubmit="return handleFormSubmit(event, this)">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="font-weight: 600; color: #334155; margin-bottom: 8px; display: block;">Player
+                        Name</label>
+                    <div style="position: relative;">
+                        <i class="fas fa-user"
+                            style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8;"></i>
+                        <input type="text" name="name" placeholder="E.g. Lionel Messi" required
+                            style="padding-left: 40px; width: 100%;">
+                    </div>
+                </div>
+
+                <div class="compact-grid">
+                    <div class="compact-input-group">
+                        <label>Goals</label>
+                        <input type="number" name="goals" min="0" required>
+                    </div>
+                    <div class="compact-input-group">
+                        <label>Matches</label>
+                        <input type="number" name="matches" min="1" required>
+                    </div>
+                    <div class="compact-input-group">
+                        <label>Assists</label>
+                        <input type="number" name="assists" min="0" required>
+                    </div>
+                    <div class="compact-input-group">
+                        <label>Pass Accuracy (%)</label>
+                        <input type="number" name="pass_accuracy" min="0" max="100" step="0.1" required>
+                    </div>
+                    <div class="compact-input-group">
+                        <label>Tackles</label>
+                        <input type="number" name="tackles" min="0" required>
+                    </div>
+                    <div class="compact-input-group">
+                        <label>Saves</label>
+                        <input type="number" name="saves" min="0" required>
+                    </div>
+                </div>
+
+                <div style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+                    <button type="submit" class="btn btn-primary"
+                        style="padding: 14px 45px; font-size: 1.05rem; width: fit-content;">
+                        <i class="fas fa-calculator"></i> Calculate Probability
+                    </button>
+                    <p style="font-size: 0.95rem; color: #64748b; cursor: pointer; display: flex; align-items: center; gap: 8px; margin: 0; transition: color 0.2s;"
+                        onclick="showSection('home')" onmouseover="this.style.color='#4361ee'"
+                        onmouseout="this.style.color='#64748b'">
+                        <i class="fas fa-arrow-left"></i> Back to home page
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== MULTIPLAYER SECTION ==================== -->
+<section id="multiplayer-section" class="content-section">
+    <div class="full-screen-container">
+        <div class="compact-upload-container">
+            <!-- Left Side: Instructions -->
+            <div class="upload-left">
+                <h1 style="color: #1e293b; margin-bottom: 15px;"><i class="fas fa-users-cog"></i> Batch Upload</h1>
+                <p style="color: #64748b; margin-bottom: 25px; line-height: 1.6;">
+                    Analyze multiple players simultaneously by uploading a CSV file. Perfect for scouting entire teams
+                    or leagues.
+                </p>
+
+                <div
+                    style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 25px;">
+                    <h4 style="margin: 0 0 8px 0; color: #334155; font-size: 0.95rem;"><i
+                            class="fas fa-info-circle"></i> CSV Format</h4>
+                    <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 12px;">
+                        Columns: <code>Name, Goals, Matches, Assists, Pass Accuracy, Tackles, Saves</code>
+                    </p>
+                    <div
+                        style="display: flex; gap: 10px; align-items: start; padding-top: 10px; border-top: 1px dashed #e2e8f0;">
+                        <i class="fas fa-sort-amount-down" style="color: #4361ee; margin-top: 3px;"></i>
+                        <p style="font-size: 0.85rem; color: #64748b; margin: 0; font-style: italic;">
+                            Players will be automatically ranked based on their selection probability score.
+                        </p>
+                    </div>
+                </div>
+
+                <a href="{{ url_for('download_template') }}" class="btn btn-secondary" style="width: fit-content;">
+                    <i class="fas fa-download"></i> Download CSV Template
+                </a>
+            </div>
+
+            <!-- Right Side: Dropzone -->
+            <div class="upload-right">
+                <form action="{{ url_for('evaluate_multiplayer') }}" method="POST" enctype="multipart/form-data"
+                    onsubmit="return handleFormSubmit(event, this)"
+                    style="height: 100%; display: flex; flex-direction: column; justify-content: center;">
+                    <div class="upload-box" id="dropZone" onclick="document.getElementById('file').click()">
+                        <i class="fas fa-cloud-upload-alt"
+                            style="font-size: 3rem; color: #4361ee; margin-bottom: 15px;"></i>
+                        <h3 style="color: #334155; margin: 0 0 10px 0;">Upload CSV File</h3>
+                        <p style="color: #94a3b8; margin: 0;">Drag & drop or click to browse</p>
+                        <input type="file" id="file" name="file" accept=".csv" required hidden>
+                    </div>
+
+                    <div id="fileInfo"
+                        style="display: none; align-items: center; justify-content: center; gap: 10px; margin-top: 15px;">
+                        <i class="fas fa-check-circle" style="color: #22c55e;"></i>
+                        <span id="fileName" style="font-weight: 600; color: #334155;">filename.csv</span>
+                        <button type="button" id="removeFile"
+                            style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 5px;"><i
+                                class="fas fa-times"></i></button>
+                    </div>
+
+                    <div
+                        style="text-align: center; margin-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+                        <button type="submit" class="btn btn-primary" id="submitBtn" disabled
+                            style="width: 100%; max-width: 320px;">
+                            Start Evaluation
+                        </button>
+                        <span
+                            style="font-size: 0.95rem; color: #64748b; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: color 0.2s;"
+                            onclick="showSection('home')" onmouseover="this.style.color='#4361ee'"
+                            onmouseout="this.style.color='#64748b'">
+                            <i class="fas fa-arrow-left"></i> Back to home page
+                        </span>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== COMPARE SECTION ==================== -->
+<section id="compare-section" class="content-section">
+    <div class="container compact-container" style="max-width: 1000px; margin-top: 20px;">
+        <header class="page-header compact-header" style="text-align: center; margin-bottom: 20px;">
+            <h1 style="margin: 0; font-size: 1.8rem;"><i class="fas fa-scale-balanced"></i> Player Comparison</h1>
+        </header>
+
+        <form action="{{ url_for('compare_players') }}" method="POST" onsubmit="return handleFormSubmit(event, this)"
+            style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+            <div style="display: flex; gap: 30px; align-items: stretch; margin-bottom: 25px;">
+                <!-- Player 1 -->
+                <div style="flex: 1; border-right: 1px solid #e2e8f0; padding-right: 20px;">
+                    <h3
+                        style="color: #4361ee; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 15px; text-align: center;">
+                        Player 1</h3>
+                    <div class="form-group">
+                        <input type="text" name="player1_name" placeholder="Name" required
+                            style="width: 100%; border: 2px solid #4361ee20;">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label style="font-size: 0.8rem;">Goals</label><input type="number"
+                                name="player1_goals" required style="padding: 8px;"></div>
+                        <div class="form-group"><label style="font-size: 0.8rem;">Matches</label><input type="number"
+                                name="player1_matches" required style="padding: 8px;"></div>
+                        <div class="form-group"><label style="font-size: 0.8rem;">Assists</label><input type="number"
+                                name="player1_assists" required style="padding: 8px;"></div>
+                        <div class="form-group"><label style="font-size: 0.8rem;">Pass %</label><input type="number"
+                                name="player1_pass_accuracy" step="0.1" required style="padding: 8px;"></div>
+                        <div class="form-group"><label style="font-size: 0.8rem;">Tackles</label><input type="number"
+                                name="player1_tackles" required style="padding: 8px;"></div>
+                        <div class="form-group"><label style="font-size: 0.8rem;">Saves</label><input type="number"
+                                name="player1_saves" required style="padding: 8px;"></div>
+                    </div>
+                </div>
+
+                <!-- VS -->
+                <div style="display: flex; align-items: center; justify-content: center;">
+                    <div
+                        style="width: 50px; height: 50px; background: linear-gradient(135deg, #4361ee, #f72585); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                        VS</div>
+                </div>
+
+                <!-- Player 2 -->
+                <div style="flex: 1; border-left: 1px solid #e2e8f0; padding-left: 20px;">
+                    <h3
+                        style="color: #f72585; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 15px; text-align: center;">
+                        Player 2</h3>
+                    <div class="form-group">
+                        <input type="text" name="player2_name" placeholder="Name" required
+                            style="width: 100%; border: 2px solid #f7258520;">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label style="font-size: 0.8rem;">Goals</label><input type="number"
+                                name="player2_goals" required style="padding: 8px;"></div>
+                        <div class="form-group"><label style="font-size: 0.8rem;">Matches</label><input type="number"
+                                name="player2_matches" required style="padding: 8px;"></div>
+                        <div class="form-group"><label style="font-size: 0.8rem;">Assists</label><input type="number"
+                                name="player2_assists" required style="padding: 8px;"></div>
+                        <div class="form-group"><label style="font-size: 0.8rem;">Pass %</label><input type="number"
+                                name="player2_pass_accuracy" step="0.1" required style="padding: 8px;"></div>
+                        <div class="form-group"><label style="font-size: 0.8rem;">Tackles</label><input type="number"
+                                name="player2_tackles" required style="padding: 8px;"></div>
+                        <div class="form-group"><label style="font-size: 0.8rem;">Saves</label><input type="number"
+                                name="player2_saves" required style="padding: 8px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center;">
+                <button type="submit" class="btn btn-large"
+                    style="width: 100%; background: linear-gradient(135deg, #4361ee, #f72585);">
+                    <i class="fas fa-scale-balanced"></i> Compare Players
+                </button>
+            </div>
+
+            <div style="margin-top: 15px; text-align: center;">
+                <span style="font-size: 0.8rem; color: #64748b;">
+                    <i class="fas fa-info-circle"></i> Highest average probability determines selection.
+                </span>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- ==================== PROFILE SECTION ==================== -->
+<section id="profile-section" class="content-section">
+    <div class="container">
+        <header class="page-header" style="text-align: center; margin-bottom: 40px;">
+            <h1><i class="fas fa-id-badge"></i> User Profile</h1>
+        </header>
+
+        <div class="card" style="text-align: center; max-width: 600px; margin: 0 auto; padding: 40px;">
+            <div
+                style="width: 120px; height: 120px; margin: 0 auto 20px; background: #eff6ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 4rem; color: #3b82f6;">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <h2 id="user-name" style="margin-bottom: 5px;">Loading...</h2>
+            <p id="user-email" style="color: #64748b; margin-bottom: 20px;">Loading...</p>
+            <span
+                style="background: #dcfce7; color: #15803d; padding: 6px 18px; border-radius: 20px; font-weight: 600; font-size: 0.9rem;">Scout
+                / Manager</span>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 40px 0;">
+                <div style="padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px solid #f1f5f9;">
+                    <span style="display: block; font-size: 1.8rem; font-weight: 700; color: #4361ee;"
+                        id="evaluationsCount">0</span>
+                    <span
+                        style="font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Evaluations</span>
+                </div>
+                <div style="padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px solid #f1f5f9;">
+                    <span style="display: block; font-size: 1.8rem; font-weight: 700; color: #f72585;"
+                        id="comparisonsCount">0</span>
+                    <span
+                        style="font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Comparisons</span>
+                </div>
+                <div style="padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px solid #f1f5f9;">
+                    <span style="display: block; font-size: 1.8rem; font-weight: 700; color: #4cc9f0;"
+                        id="uploadsCount">0</span>
+                    <span
+                        style="font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Uploads</span>
+                </div>
+            </div>
+
+            <button onclick="handleLogout()" class="btn"
+                style="background: #ef4444; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);">
+                <i class="fas fa-sign-out-alt"></i> Sign Out
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const ctx = document.getElementById('performanceChart');
+        if (ctx) {
+            // Data from backend
+            const lrData = [
+                {{ metrics.lr.Accuracy | default(0) }},
+        { { metrics.lr.Precision | default (0) } },
+        { { metrics.lr.Recall | default (0) } },
+        { { metrics.lr['F1 Score'] | default (0) } }
+            ];
+
+        const rfData = [
+            {{ metrics.rf.Accuracy | default(0) }},
+        {{ metrics.rf.Precision | default(0) }},
+        {{ metrics.rf.Recall | default(0) }},
+        {{ metrics.rf['F1 Score'] | default(0) }}
+            ];
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Accuracy', 'Precision', 'Recall', 'F1 Score'],
+            datasets: [
+                {
+                    label: 'Logistic Regression',
+                    data: lrData,
+                    backgroundColor: 'rgba(67, 97, 238, 0.8)',
+                    borderColor: 'rgba(67, 97, 238, 1)',
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.8
+                },
+                {
+                    label: 'Random Forest',
+                    data: rfData,
+                    backgroundColor: 'rgba(247, 37, 133, 0.8)',
+                    borderColor: 'rgba(247, 37, 133, 1)',
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.8
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                    padding: 10,
+                    cornerRadius: 8
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 105,
+                    grid: { color: '#f1f5f9', drawBorder: false },
+                    ticks: { font: { size: 10 }, color: '#94a3b8' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 11, weight: '600' }, color: '#64748b' }
+                }
+            }
+        }
+    });
+        }
+    });
+
+    // Handle logout explicitly
+    window.handleLogout = async function () {
+        if (window.Clerk) {
+            await Clerk.signOut();
+            window.location.href = '/';
+        }
+    };
+</script>
+{% endblock %}

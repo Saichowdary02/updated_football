@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Football Selection Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Clerk Authentication -->
+    <script async crossorigin="anonymous" data-clerk-publishable-key="{{ clerk_publishable_key }}"
+        src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js" type="text/javascript"></script>
+</head>
+
+<body class="landing-page">
+    <nav class="navbar-landing">
+        <div class="nav-brand">
+            <a href="/">
+                <i class="fas fa-futbol"></i>
+                <span>Smart Football Selection Assistant</span>
+            </a>
+        </div>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Dark Mode"
+                style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: white;">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="btn-signin" onclick="event.preventDefault(); openClerkSignIn();">Sign In</button>
+        </div>
+    </nav>
+
+    <!-- Clerk Modal Overlay -->
+    <div id="clerk-overlay" class="clerk-overlay"></div>
+    <!-- Clerk Auth Container -->
+    <div id="clerk-auth-container" class="clerk-auth-container"></div>
+
+    <main class="hero-modern">
+        <div class="hero-content-left">
+            <div class="powered-badge">
+                <i class="fas fa-bolt"></i>
+                <span>POWERED BY ML</span>
+            </div>
+            <h1 class="hero-title">
+                Your Intelligent<br>
+                <span class="gradient-text">Football Scout</span>
+            </h1>
+            <p class="hero-description">
+                Smart Football Selection Assistant connects you to advanced machine learning models. Experience smarter
+                player evaluation with
+                ensemble predictions, data insights, and intelligent selection.
+            </p>
+            <div class="hero-cta-modern">
+                <button class="btn-modern" onclick="event.preventDefault(); openClerkSignIn();">
+                    Get Started for Free <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+        <div class="hero-features-right">
+            <div class="feature-grid">
+                <div class="feature-card-modern">
+                    <div class="feature-icon-modern blue">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3>Single Player Evaluation</h3>
+                    <p>Evaluate individual players using advanced machine learning models with detailed probability
+                        scores.</p>
+                </div>
+                <div class="feature-card-modern">
+                    <div class="feature-icon-modern green">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Multiplayer Selection</h3>
+                    <p>Upload CSV files and evaluate your entire squad at once with batch processing.</p>
+                </div>
+                <div class="feature-card-modern">
+                    <div class="feature-icon-modern purple">
+                        <i class="fas fa-scale-balanced"></i>
+                    </div>
+                    <h3>Player Comparison</h3>
+                    <p>Compare two players with ensemble probability analysis.</p>
+                </div>
+                <div class="feature-card-modern">
+                    <div class="feature-icon-modern orange">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Data-Driven Insights</h3>
+                    <p>Ensemble models combining Logistic Regression and Random Forest algorithms.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="landing-footer">
+        <p>&copy;Smart Football Selection Assistant</p>
+        <div class="footer-links">
+            <span><i class="fas fa-shield-alt"></i> Secure</span>
+            <span><i class="fas fa-bolt"></i> Fast</span>
+        </div>
+    </footer>
+
+    <script>
+        let clerkReady = false;
+
+        // Initialize Clerk
+        window.addEventListener('load', async function () {
+            try {
+                // Check for script tag
+                const scriptTag = document.querySelector('script[data-clerk-publishable-key]');
+                if (!scriptTag) {
+                    console.error('Clerk script tag not found');
+                    // alert('Configuration Error: Clerk Publishable Key Missing');
+                    return;
+                }
+
+                if (!window.Clerk) {
+                    console.error('Clerk object not found');
+                    // alert('Error: Authentication service failed to load. Please check your internet connection.');
+                    return;
+                }
+
+                await Clerk.load({
+                    appearance: {
+                        variables: {
+                            colorPrimary: '#4361ee',
+                            colorText: '#1e293b'
+                        }
+                    }
+                });
+
+                clerkReady = true;
+                console.log('Clerk loaded successfully');
+
+                // Update button text if already signed in
+                if (Clerk.user) {
+                    const signinBtn = document.querySelector('.btn-signin');
+                    if (signinBtn) signinBtn.textContent = 'Go to Dashboard';
+
+                    const ctaBtn = document.querySelector('.btn-modern');
+                    if (ctaBtn) ctaBtn.innerHTML = 'Go to Dashboard <i class="fas fa-arrow-right"></i>';
+                }
+            } catch (error) {
+                console.error('Clerk initialization error:', error);
+            }
+        });
+
+        // Open Clerk Sign In modal
+        function openClerkSignIn() {
+            if (!clerkReady || !window.Clerk) {
+                // Retry load if needed
+                if (window.Clerk && !clerkReady) {
+                    Clerk.load().then(() => {
+                        clerkReady = true;
+                        openClerkSignIn();
+                    });
+                    return;
+                }
+                alert('Authentication is loading...');
+                return;
+            }
+
+            if (Clerk.user) {
+                window.location.href = '/home';
+                return;
+            }
+
+            // Use Clerk's built-in modal
+            Clerk.openSignIn({
+                fallbackRedirectUrl: '/home',
+                signUpUrl: '/home',
+                appearance: {
+                    elements: {
+                        rootBox: "cl-rootBox",
+                        card: "cl-card-medium"
+                    }
+                }
+            });
+        }
+
+        // Open Clerk Sign Up modal
+        function openClerkSignUp() {
+            if (!clerkReady || !window.Clerk) {
+                if (window.Clerk && !clerkReady) {
+                    Clerk.load().then(() => {
+                        clerkReady = true;
+                        openClerkSignUp();
+                    });
+                    return;
+                }
+                alert('Authentication is loading...');
+                return;
+            }
+
+            if (Clerk.user) {
+                window.location.href = '/home';
+                return;
+            }
+
+            // Use Clerk's built-in modal
+            Clerk.openSignUp({
+                fallbackRedirectUrl: '/home',
+                signInUrl: '/home',
+                appearance: {
+                    elements: {
+                        rootBox: "cl-rootBox",
+                        card: "cl-card-medium"
+                    }
+                }
+            });
+        }
+
+        // Legacy closure for completeness, though unused now
+        function closeClerkModal() { }
+
+        // Theme Toggle Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleBtn = document.getElementById('theme-toggle');
+            const html = document.documentElement;
+            const icon = toggleBtn ? toggleBtn.querySelector('i') : null;
+
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            html.setAttribute('data-theme', savedTheme);
+            updateIcon(savedTheme);
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    const currentTheme = html.getAttribute('data-theme');
+                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+                    html.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('theme', newTheme);
+                    updateIcon(newTheme);
+                });
+            }
+
+            function updateIcon(theme) {
+                if (!icon) return;
+                if (theme === 'light') {
+                    icon.className = 'fas fa-sun';
+                    icon.style.color = '#f59e0b'; // Sun color
+                } else {
+                    icon.className = 'fas fa-moon';
+                    icon.style.color = 'white';
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

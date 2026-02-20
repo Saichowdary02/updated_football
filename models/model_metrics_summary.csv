@@ -1,0 +1,5 @@
+Dataset,Model,Accuracy,F1 Score,Recall,Precision,ROC AUC
+Training,Logistic Regression,0.9886,0.9905,0.9952,0.9858,0.9998
+Training,Random Forest,0.9914,0.9928,0.9905,0.9952,0.9987
+Test,Logistic Regression,0.9200,0.9286,0.8667,1.0000,1.0000
+Test,Random Forest,0.9000,0.9091,0.8333,1.0000,1.0000

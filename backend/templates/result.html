@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selection Results - Smart Football Selection Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+</head>
+
+<body>
+    <div class="result-page-container">
+        <style>
+            .result-page-container {
+                max-width: 600px;
+                width: 95%;
+                margin: 40px auto;
+                padding: 0;
+                display: block;
+                /* Ensure text color is dark for modal visibility */
+                color: #212121;
+            }
+
+            .result-page-header {
+                text-align: center;
+                margin-bottom: 20px;
+            }
+
+            .result-page-header h1 {
+                font-size: 1.6rem;
+                margin-bottom: 5px;
+                background: var(--gradient-primary);
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+            }
+
+            .result-card-compact {
+                padding: 25px;
+                border-radius: 16px;
+                background: rgba(255, 255, 255, 0.98);
+                box-shadow: var(--card-shadow);
+                /* Ensure text inside card is dark */
+                color: #212121;
+            }
+
+            .result-container-compact {
+                padding: 20px;
+                border-radius: 12px;
+                border-left: 4px solid var(--primary-color);
+                background: linear-gradient(135deg, rgba(67, 97, 238, 0.05) 0%, rgba(76, 201, 240, 0.05) 100%);
+            }
+
+            .result-container-compact.selected {
+                border-left-color: #22c55e;
+                background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(76, 201, 240, 0.05) 100%);
+            }
+
+            .result-container-compact.not-selected {
+                border-left-color: #ef4444;
+                background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(247, 37, 133, 0.05) 100%);
+            }
+
+            .result-header-compact {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .result-header-compact h3 {
+                font-size: 1.4rem;
+                margin: 0;
+                color: #212121;
+                /* force dark color */
+                font-weight: 600;
+            }
+
+            .selection-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 8px 16px;
+                border-radius: 50px;
+                font-size: 0.9rem;
+                font-weight: 600;
+            }
+
+            .selection-badge.selected {
+                background: linear-gradient(135deg, #22c55e, #16a34a);
+                color: white;
+            }
+
+            .selection-badge.not-selected {
+                background: linear-gradient(135deg, #ef4444, #dc2626);
+                color: white;
+            }
+
+            .probability-container-compact {
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+            }
+
+            .probability-item-compact {
+                display: grid;
+                grid-template-columns: 130px 1fr 60px;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .probability-label-compact {
+                font-size: 0.85rem;
+                font-weight: 500;
+                color: #546e7a;
+                /* Force gray color */
+            }
+
+            .probability-bar-compact {
+                height: 24px;
+                background: rgba(0, 0, 0, 0.08);
+                border-radius: 12px;
+                overflow: hidden;
+                position: relative;
+            }
+
+            .probability-fill-compact {
+                height: 100%;
+                background: var(--gradient-primary);
+                border-radius: 12px;
+                transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
+            }
+
+            .probability-fill-compact::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+                animation: shimmer 2s infinite;
+            }
+
+            @keyframes shimmer {
+                0% {
+                    transform: translateX(-100%);
+                }
+
+                100% {
+                    transform: translateX(100%);
+                }
+            }
+
+            .probability-fill-compact.average {
+                background: var(--gradient-secondary);
+            }
+
+            .probability-value-compact {
+                text-align: right;
+                font-weight: 700;
+                font-size: 0.95rem;
+                color: #212121;
+                /* Force dark color */
+            }
+
+            .back-button-compact {
+                margin-top: 25px;
+                text-align: center;
+            }
+
+            .back-button-compact .btn {
+                padding: 12px 30px;
+                font-size: 0.95rem;
+            }
+
+            .compact-footer {
+                text-align: center;
+                margin-top: 20px;
+                font-size: 0.75rem;
+                color: rgba(255, 255, 255, 0.5);
+            }
+
+            /* Helper Classes for Multi-result Table */
+            .selected-row {
+                background: rgba(34, 197, 94, 0.12);
+            }
+
+            .not-selected-row {
+                background: rgba(239, 68, 68, 0.08);
+            }
+
+            .status-badge-selected {
+                background: #22c55e !important;
+                color: white !important;
+            }
+
+            .status-badge-not-selected {
+                background: #ef4444 !important;
+                color: white !important;
+            }
+        </style>
+        <div class="card result-card-compact" style="margin-top: 20px;">
+            {% if is_single %}
+            <div class="result-container-compact {% if result.selected %}selected{% else %}not-selected{% endif %}">
+                <div class="result-header-compact">
+                    <h3>{{ result.name }}</h3>
+                    <div class="selection-badge {% if result.selected %}selected{% else %}not-selected{% endif %}">
+                        {% if result.selected %}
+                        <i class="fas fa-check-circle"></i> Selected
+                        {% else %}
+                        <i class="fas fa-times-circle"></i> Not Selected
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="probability-container-compact">
+                    <div class="probability-item-compact">
+                        <div class="probability-label-compact">Logistic Regression</div>
+                        <div class="probability-bar-compact">
+                            <div class="probability-fill-compact"
+                                data-width="{{ result.logistic_regression_probability * 100 }}%"></div>
+                        </div>
+                        <div class="probability-value-compact">{{ "%.2f"|format(result.logistic_regression_probability)
+                            }}</div>
+                    </div>
+
+                    <div class="probability-item-compact">
+                        <div class="probability-label-compact">Random Forest</div>
+                        <div class="probability-bar-compact">
+                            <div class="probability-fill-compact"
+                                data-width="{{ result.random_forest_probability * 100 }}%"></div>
+                        </div>
+                        <div class="probability-value-compact">{{ "%.2f"|format(result.random_forest_probability) }}
+                        </div>
+                    </div>
+
+                    <div class="probability-item-compact">
+                        <div class="probability-label-compact"><strong>Average</strong></div>
+                        <div class="probability-bar-compact">
+                            <div class="probability-fill-compact average"
+                                data-width="{{ result.average_probability * 100 }}%"></div>
+                        </div>
+                        <div class="probability-value-compact"><strong>{{ "%.2f"|format(result.average_probability)
+                                }}</strong></div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <h2 style="font-size: 1.1rem; color: var(--dark-color); margin-bottom: 15px;">
+                <i class="fas fa-users"></i> Multiple Players Results
+            </h2>
+            <div style="margin-bottom: 12px; display: flex; gap: 20px; font-size: 0.85rem; color: var(--gray-color);">
+                <span><strong>Total:</strong> {{ results|length }}</span>
+                <span style="color: #22c55e;"><strong>Selected:</strong> {{ results|selectattr('selected', 'eq',
+                    true)|list|length }}</span>
+                <span style="color: #ef4444;"><strong>Not Selected:</strong> {{ results|selectattr('selected', 'eq',
+                    false)|list|length }}</span>
+            </div>
+
+            <div style="max-height: 350px; overflow-y: auto; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <table style="width: 100%; font-size: 0.85rem; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: linear-gradient(135deg, #4361ee, #3a0ca3); color: white;">
+                            <th style="padding: 12px 10px; text-align: left; font-weight: 600;">#</th>
+                            <th style="padding: 12px 10px; text-align: left; font-weight: 600;">Name</th>
+                            <th style="padding: 12px 10px; text-align: center; font-weight: 600;">LR</th>
+                            <th style="padding: 12px 10px; text-align: center; font-weight: 600;">RF</th>
+                            <th style="padding: 12px 10px; text-align: center; font-weight: 600;">Avg</th>
+                            <th style="padding: 12px 10px; text-align: center; font-weight: 600;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for result in results %}
+                        <tr class="{% if result.selected %}selected-row{% else %}not-selected-row{% endif %}"
+                            style="border-bottom: 1px solid #e2e8f0;">
+                            <td style="padding: 10px 10px; color: #1e293b; font-weight: 500;">{{ loop.index }}</td>
+                            <td style="padding: 10px 10px; color: #1e293b; font-weight: 600;">{{ result.name }}</td>
+                            <td style="padding: 10px 10px; color: #1e293b; font-weight: 600; text-align: center;">{{
+                                "%.2f"|format(result.logistic_regression_probability) }}</td>
+                            <td style="padding: 10px 10px; color: #1e293b; font-weight: 600; text-align: center;">{{
+                                "%.2f"|format(result.random_forest_probability) }}</td>
+                            <td style="padding: 10px 10px; color: #1e293b; font-weight: 700; text-align: center;">{{
+                                "%.2f"|format(result.average_probability) }}</td>
+                            <td style="padding: 10px 10px; text-align: center;">
+                                <span
+                                    class="{% if result.selected %}status-badge-selected{% else %}status-badge-not-selected{% endif %}"
+                                    style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">
+                                    {% if result.selected %}
+                                    <i class="fas fa-check" style="color: white !important;"></i> <span
+                                        style="color: white !important;">Yes</span>
+                                    {% else %}
+                                    <i class="fas fa-times" style="color: white !important;"></i> <span
+                                        style="color: white !important;">No</span>
+                                    {% endif %}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            <div class="back-button-compact">
+                <a href="/home" class="btn btn-primary"
+                    style="background: var(--gradient-primary); border-radius: 50px; padding: 14px 40px; font-weight: 700; box-shadow: 0 4px 15px rgba(67, 97, 238, 0.4);">
+                    <i class="fas fa-arrow-left"></i> Back to home page
+                </a>
+            </div>
+        </div>
+
+        <footer class="compact-footer">
+            <p>&copy; 2024 Smart Football Selection Assistant | Powered by ML</p>
+        </footer>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[data-width]').forEach(function (el) {
+                el.style.width = el.getAttribute('data-width');
+            });
+        });
+    </script>
+</body>
+
+</html>

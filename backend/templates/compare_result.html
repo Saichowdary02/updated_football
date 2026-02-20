@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+
+{% block title %}Comparison Results - Smart Football Selection Assistant{% endblock %}
+
+{% block content %}
+<style>
+    .compare-result-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 15px;
+    }
+
+    .compare-result-header {
+        text-align: center;
+        margin-bottom: 15px;
+    }
+
+    .compare-result-header h1 {
+        font-size: 1.4rem;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 0;
+    }
+
+    .winner-banner {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        border-radius: 12px;
+        padding: 12px 20px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        color: white;
+    }
+
+    .winner-banner i {
+        font-size: 1.5rem;
+    }
+
+    .winner-banner .winner-text {
+        text-align: left;
+    }
+
+    .winner-banner .winner-label {
+        font-size: 0.75rem;
+        opacity: 0.9;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .winner-banner h2 {
+        font-size: 1.2rem;
+        margin: 2px 0;
+    }
+
+    .winner-banner p {
+        font-size: 0.8rem;
+        margin: 0;
+        opacity: 0.9;
+    }
+
+    .comparison-results {
+        display: flex;
+        gap: 15px;
+        align-items: stretch;
+        margin-bottom: 15px;
+    }
+
+    .result-card-compact {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .result-card-compact.winner {
+        border: 2px solid #22c55e;
+    }
+
+    .result-card-compact.loser {
+        border: 1px solid #e2e8f0;
+        opacity: 0.85;
+    }
+
+    .result-header-compact {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .player-badge-compact {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.9rem;
+    }
+
+    .player-badge-compact.player1 {
+        background: var(--gradient-primary);
+    }
+
+    .player-badge-compact.player2 {
+        background: var(--gradient-secondary);
+    }
+
+    .result-header-compact h3 {
+        flex: 1;
+        font-size: 1rem;
+        margin: 0;
+        color: #1e293b;
+    }
+
+    .result-badge-compact {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .result-badge-compact.selected {
+        background: #22c55e;
+        color: white;
+    }
+
+    .result-badge-compact.not-selected {
+        background: #ef4444;
+        color: white;
+    }
+
+    .probability-section-compact {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .probability-item-compact {
+        display: grid;
+        grid-template-columns: 100px 1fr 50px;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .probability-label-compact {
+        font-size: 0.7rem;
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    .probability-bar-compact {
+        height: 8px;
+        background: #e2e8f0;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .probability-fill-compact {
+        height: 100%;
+        background: var(--gradient-primary);
+        border-radius: 4px;
+    }
+
+    .probability-fill-compact.average {
+        background: var(--gradient-secondary);
+    }
+
+    .probability-value-compact {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #1e293b;
+        text-align: right;
+    }
+
+    .vs-divider-compact {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0 5px;
+    }
+
+    .vs-circle-compact {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--gradient-primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .diff-compact {
+        margin-top: 5px;
+        text-align: center;
+    }
+
+    .diff-compact .diff-label {
+        display: block;
+        font-size: 0.65rem;
+        color: #64748b;
+    }
+
+    .diff-compact .diff-value {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .result-actions-compact {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .result-actions-compact .btn {
+        padding: 10px 24px;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="compare-result-container">
+    <header class="compare-result-header">
+        <h1><i class="fas fa-scale-balanced"></i> Comparison Results</h1>
+    </header>
+
+    <!-- Winner Banner -->
+    <div class="winner-banner">
+        <i class="fas fa-trophy"></i>
+        <div class="winner-text">
+            <span class="winner-label">Recommended Selection</span>
+            <h2>{{ winner_name }}</h2>
+            <p>Ensemble Probability: {{ '%.4f'|format(winner_prob) }}</p>
+        </div>
+    </div>
+
+    <!-- Comparison Cards -->
+    <div class="comparison-results">
+        <!-- Player 1 Result -->
+        <div class="result-card-compact {% if winner == 'player1' %}winner{% else %}loser{% endif %}">
+            <div class="result-header-compact">
+                <div class="player-badge-compact player1">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h3>{{ player1.name }}</h3>
+                {% if winner == 'player1' %}
+                <span class="result-badge-compact selected"><i class="fas fa-check"></i> Selected</span>
+                {% else %}
+                <span class="result-badge-compact not-selected"><i class="fas fa-times"></i> Not Selected</span>
+                {% endif %}
+            </div>
+
+            <div class="probability-section-compact">
+                <div class="probability-item-compact">
+                    <div class="probability-label-compact">Logistic Reg.</div>
+                    <div class="probability-bar-compact">
+                        <div class="probability-fill-compact"
+                            data-width="{{ player1.logistic_regression_probability * 100 }}%"></div>
+                    </div>
+                    <span class="probability-value-compact">{{ '%.2f'|format(player1.logistic_regression_probability)
+                        }}</span>
+                </div>
+
+                <div class="probability-item-compact">
+                    <div class="probability-label-compact">Random Forest</div>
+                    <div class="probability-bar-compact">
+                        <div class="probability-fill-compact"
+                            data-width="{{ player1.random_forest_probability * 100 }}%"></div>
+                    </div>
+                    <span class="probability-value-compact">{{ '%.2f'|format(player1.random_forest_probability)
+                        }}</span>
+                </div>
+
+                <div class="probability-item-compact">
+                    <div class="probability-label-compact"><strong>Average</strong></div>
+                    <div class="probability-bar-compact">
+                        <div class="probability-fill-compact average"
+                            data-width="{{ player1.average_probability * 100 }}%"></div>
+                    </div>
+                    <span class="probability-value-compact"><strong>{{ '%.2f'|format(player1.average_probability)
+                            }}</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- VS Divider -->
+        <div class="vs-divider-compact">
+            <div class="vs-circle-compact">VS</div>
+            <div class="diff-compact">
+                <span class="diff-label">Diff</span>
+                <span class="diff-value">{{ '%.2f'|format(probability_diff) }}</span>
+            </div>
+        </div>
+
+        <!-- Player 2 Result -->
+        <div class="result-card-compact {% if winner == 'player2' %}winner{% else %}loser{% endif %}">
+            <div class="result-header-compact">
+                <div class="player-badge-compact player2">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h3>{{ player2.name }}</h3>
+                {% if winner == 'player2' %}
+                <span class="result-badge-compact selected"><i class="fas fa-check"></i> Selected</span>
+                {% else %}
+                <span class="result-badge-compact not-selected"><i class="fas fa-times"></i> Not Selected</span>
+                {% endif %}
+            </div>
+
+            <div class="probability-section-compact">
+                <div class="probability-item-compact">
+                    <div class="probability-label-compact">Logistic Reg.</div>
+                    <div class="probability-bar-compact">
+                        <div class="probability-fill-compact"
+                            data-width="{{ player2.logistic_regression_probability * 100 }}%"></div>
+                    </div>
+                    <span class="probability-value-compact">{{ '%.2f'|format(player2.logistic_regression_probability)
+                        }}</span>
+                </div>
+
+                <div class="probability-item-compact">
+                    <div class="probability-label-compact">Random Forest</div>
+                    <div class="probability-bar-compact">
+                        <div class="probability-fill-compact"
+                            data-width="{{ player2.random_forest_probability * 100 }}%"></div>
+                    </div>
+                    <span class="probability-value-compact">{{ '%.2f'|format(player2.random_forest_probability)
+                        }}</span>
+                </div>
+
+                <div class="probability-item-compact">
+                    <div class="probability-label-compact"><strong>Average</strong></div>
+                    <div class="probability-bar-compact">
+                        <div class="probability-fill-compact average"
+                            data-width="{{ player2.average_probability * 100 }}%"></div>
+                    </div>
+                    <span class="probability-value-compact"><strong>{{ '%.2f'|format(player2.average_probability)
+                            }}</strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Button -->
+    <div class="result-actions-compact">
+        <a href="{{ url_for('home') }}" class="btn btn-primary">
+            <i class="fas fa-home"></i> Go to Home Page
+        </a>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('[data-width]').forEach(function (el) {
+            el.style.width = el.getAttribute('data-width');
+        });
+    });
+</script>
+{% endblock %}
